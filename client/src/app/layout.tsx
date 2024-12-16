@@ -1,13 +1,9 @@
 import type { Metadata } from "next";
-import { Orbitron } from "next/font/google";
 import "./globals.css";
-
-const orbitron = Orbitron({
-  subsets: ['latin'],
-});
+import NavBar from "@/components/NavBar";
 
 export const metadata: Metadata = {
-  title: "Nexus",
+  title: "Orbitum",
   description: " A Global State Framework for Cross-Chain Smart Contracts",
 };
 
@@ -17,8 +13,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={orbitron.className}>
+    <html lang="en">
       <body>
+        <NavBar/>
         {children}
       </body>
     </html>
