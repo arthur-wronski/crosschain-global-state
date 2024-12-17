@@ -26,116 +26,111 @@ const features = [
 ]
 
 export default function Home() {
-  // const canvasRef = useRef(null);
+  useEffect(() => {
+    const canvas = document.getElementById("dynamic-bg");
+    const ctx = canvas.getContext("2d");
 
-  // useEffect(() => {
-  //   const canvas = canvasRef.current;
-  //   const ctx = canvas.getContext('2d');
+    let particlesArray = [];
+    const numberOfParticles = 75;
+    const maxDistance = 150;
 
-  //   canvas.width = window.innerWidth;
-  //   canvas.height = window.innerHeight;
+    // Set canvas size
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-  //   class CelestialBody {
-  //     constructor(x, y, radius, color, type = 'planet') {
-  //       this.x = x;
-  //       this.y = y;
-  //       this.radius = radius;
-  //       this.color = color;
-  //       this.type = type;
-  //       this.noise = Math.random() * 10;
-  //       this.rotation = Math.random() * Math.PI * 2;
-  //     }
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      initParticles();
+    };
 
-  //     draw(ctx) {
-  //       ctx.save();
-  //       ctx.beginPath();
-        
-  //       // Add some organic deformation
-  //       ctx.translate(this.x, this.y);
-  //       ctx.rotate(this.rotation);
-        
-  //       if (this.type === 'planet') {
-  //         // Create more organic planet shape
-  //         ctx.ellipse(0, 0, 
-  //           this.radius, 
-  //           this.radius * (0.8 + Math.sin(this.noise) * 0.2), 
-  //           0, 0, Math.PI * 2
-  //         );
-  //         ctx.fillStyle = this.color;
-  //         ctx.fill();
+    window.addEventListener("resize", handleResize);
 
-  //         // Add atmospheric effect
-  //         ctx.beginPath();
-  //         ctx.ellipse(0, 0, 
-  //           this.radius * 1.2, 
-  //           this.radius * 1.1, 
-  //           0, 0, Math.PI * 2
-  //         );
-  //         ctx.strokeStyle = `${this.color}33`;
-  //         ctx.lineWidth = 3;
-  //         ctx.stroke();
-  //       }
+    // Create particle class
+    class Particle {
+      constructor(x, y, size, speedX, speedY) {
+        this.x = x;
+        this.y = y;
+        this.size = size;
+        this.speedX = speedX;
+        this.speedY = speedY;
+      }
 
-  //       ctx.restore();
-  //     }
+      // Draw particle as a block
+      draw() {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(this.x, this.y, this.size, this.size);
+      }
 
-  //     update() {
-  //       this.noise += 0.05;
-  //       this.rotation += 0.01;
-  //     }
-  //   }
+      // Update particle position
+      update() {
+        if (this.x + this.size > canvas.width || this.x < 0) {
+          this.speedX = -this.speedX;
+        }
+        if (this.y + this.size > canvas.height || this.y < 0) {
+          this.speedY = -this.speedY;
+        }
+        this.x += this.speedX;
+        this.y += this.speedY;
+      }
+    }
 
-  //   const bodies = [];
-  //   const bodyCount = 6;
-  //   const colors = [
-  //     'rgba(255,255,255,0.7)', 
-  //     'rgba(200,200,255,0.5)', 
-  //     'rgba(255,200,200,0.5)'
-  //   ];
+    // Initialize particles
+    function initParticles() {
+      particlesArray = [];
+      for (let i = 0; i < numberOfParticles; i++) {
+        let size = Math.random() * 5 + 5;
+        let x = Math.random() * (canvas.width - size * 2);
+        let y = Math.random() * (canvas.height - size * 2);
+        let speedX = Math.random() - 1;
+        let speedY = Math.random() - 1;
+        particlesArray.push(new Particle(x, y, size, speedX, speedY));
+      }
+    }
 
-  //   // Create varied celestial bodies
-  //   for (let i = 0; i < bodyCount; i++) {
-  //     bodies.push(new CelestialBody(
-  //       Math.random() * canvas.width,
-  //       Math.random() * canvas.height,
-  //       Math.random() * 50 + 20,
-  //       colors[Math.floor(Math.random() * colors.length)]
-  //     ));
-  //   }
+    // Draw connecting lines between nearby particles
+    function connectParticles() {
+      for (let a = 0; a < particlesArray.length; a++) {
+        for (let b = a; b < particlesArray.length; b++) {
+          const dx = particlesArray[a].x - particlesArray[b].x;
+          const dy = particlesArray[a].y - particlesArray[b].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < maxDistance) {
+            const opacity = 1 - distance / maxDistance;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(particlesArray[a].x + particlesArray[a].size / 2, particlesArray[a].y + particlesArray[a].size / 2);
+            ctx.lineTo(particlesArray[b].x + particlesArray[b].size / 2, particlesArray[b].y + particlesArray[b].size / 2);
+            ctx.stroke();
+          }
+        }
+      }
+    }
 
-  //   function animate() {
-  //     ctx.fillStyle = 'rgb(30, 41, 59)'; // slate-800
-  //     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Animate the canvas
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particlesArray.forEach(particle => {
+        particle.update();
+        particle.draw();
+      });
+      connectParticles();
+      requestAnimationFrame(animate);
+    }
 
-  //     bodies.forEach(body => {
-  //       body.update();
-  //       body.draw(ctx);
+    initParticles();
+    animate();
 
-  //       // Wrap around screen
-  //       body.x = (body.x + 1) % canvas.width;
-  //       body.y = (body.y + 0.5) % canvas.height;
-  //     });
-
-  //     requestAnimationFrame(animate);
-  //   }
-
-  //   const handleResize = () => {
-  //     canvas.width = window.innerWidth;
-  //     canvas.height = window.innerHeight;
-  //   };
-
-  //   window.addEventListener('resize', handleResize);
-  //   animate();
-
-  //   return () => {
-  //     window.removeEventListener('resize', handleResize);
-  //   };
-  // }, []);
-  
+    return () => {
+      // Clean up event listener on unmount
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
   return (
     <div className="relative bg-zinc-900 text-zinc-200 min-h-screen">
       {/* Canvas for Dynamic Background */}
-      {/* <canvas ref={canvasRef} className="absolute inset-0 z-0" /> */}
+      <canvas id="dynamic-bg" className="absolute inset-0 z-0" />
 
       {/* Rest of the existing code remains the same */}
       <div className="relative z-10">
