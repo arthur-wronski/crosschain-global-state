@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "Orbitum",
@@ -16,6 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <NavBar/>
+        <Toaster />
         {children}
       </body>
     </html>
