@@ -57,7 +57,6 @@ export default function Dashboard() {
     setContract(contract)
 
     const ast = parser.parse(contract)
-    console.log("Abstract syntax tree: ", ast)
 
     const contractFunctions: string[] = getFunctionsFromAST(ast)
 
@@ -65,6 +64,43 @@ export default function Dashboard() {
 
     setContractFunctions(functionOptions)
 
+  }
+
+  const handleDeploy = async () => {
+    if (!primaryChain || !secondaryChain || !functionToCopy || !contract) {
+      alert("Please fill in all fields before deploying.");
+      return;
+    }
+
+    const deployData = {
+      primaryChain,
+      secondaryChain,
+      functionToCopy,
+      contract,
+    }
+
+    try {
+      const url = "http://localhost:3001/api/deploy";
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(deployData),
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        alert("Deployment successful!");
+      } else {
+        console.error("Deployment failed:", result);
+        alert("Deployment failed.");
+      }
+    } catch (error) {
+      console.error("Error during deployment:", error);
+      alert("An error occurred during deployment.");
+    }
   }
 
   return (
@@ -113,7 +149,10 @@ export default function Dashboard() {
           />
         </div>
 
-        <Button className="flex w-32 h-10 bg-teal-700 hover:bg-teal-600 mx-auto border-zinc-600 mt-4" > 
+        <Button 
+          className="flex w-32 h-10 bg-teal-700 hover:bg-teal-600 mx-auto border-zinc-600 mt-4"
+          onClick={handleDeploy} 
+        > 
           <Rocket size={18} />
           Deploy
         </Button>
