@@ -2,13 +2,15 @@
 
 import { Textarea } from "@/components/ui/textarea"
 import Picker from "@/components/Picker"
-import React, { useState } from "react"
+import React from "react"
 import { Button } from "@/components/ui/button"
 import { Rocket } from "lucide-react"
 import { Label } from "@/components/ui/label"
-import parser, {ParseResult} from "@solidity-parser/parser"
+import parser from "@solidity-parser/parser"
 import { PickerOption } from "@/types/types"
-import { FunctionDefinition } from "@solidity-parser/parser/dist/src/ast-types"
+import useDeploymentStore from "@/zustand/useDeploymentStore"
+import { getFunctionsFromAST } from "@/utils/deploymentUtils"
+import { deployContract } from "@/api/post/deployContract"
 
 export default function Dashboard() {
   const chains= [
@@ -20,38 +22,21 @@ export default function Dashboard() {
     { value: "base", label: "Base" },
   ]
 
-  const [primaryChain, setPrimaryChain] = useState<string | null>(null)
-  // this will later be an array
-  const [secondaryChain, setSecondaryChain] = useState<string | null>(null)
-  const [functionToCopy, setFunctionToCopy] = useState<string |null>(null)
+  const primaryChain = useDeploymentStore((state) => state.primaryChain)
+  const setPrimaryChain = useDeploymentStore((state) => state.setPrimaryChain)
 
-  const [contract, setContract] = useState<string>("")
-  const [contractFunctions, setContractFunctions] = useState<PickerOption[]>([])
+  // this will later be an array of chains
+  const secondaryChain = useDeploymentStore((state) => state.secondaryChain)
+  const setSecondaryChain = useDeploymentStore((state) => state.setSecondaryChain)
 
-  const getFunctionsFromAST = (tree: ParseResult): string[] => {
-    if (tree.errors || tree.children.length == 0){
-      return []
-    }
+  const functionToCopy = useDeploymentStore((state) => state.functionToCopy)
+  const setFunctionToCopy = useDeploymentStore((state) => state.setFunctionToCopy)
 
-    const contractDefinition = tree.children.find((child) => child.type === "ContractDefinition") 
+  const contract = useDeploymentStore((state) => state.contract)
+  const setContract = useDeploymentStore((state) => state.setContract)
 
-    if (contractDefinition === undefined || contractDefinition.subNodes.length == 0){
-      return []
-    }
-
-    const functionDefinitions: FunctionDefinition[] = contractDefinition.subNodes.filter(
-      (subNode) => subNode.type === "FunctionDefinition") as FunctionDefinition[];
-
-    if (functionDefinitions.length == 0){
-      return []
-    }
-
-    const functionNames: string[] = functionDefinitions
-      .filter((functionDefinition) => functionDefinition.isConstructor === false)
-      .map( (func) => func.name) as string[]
-
-    return functionNames
-  }
+  const contractFunctions = useDeploymentStore((state) => state.contractFunctions)
+  const setContractFunctions = useDeploymentStore((state) => state.setContractFunctions)
 
   const handleContractChange = (contract: string) => {
     setContract(contract)
@@ -72,35 +57,8 @@ export default function Dashboard() {
       return;
     }
 
-    const deployData = {
-      primaryChain,
-      secondaryChain,
-      functionToCopy,
-      contract,
-    }
-
-    try {
-      const url = "http://localhost:3001/api/deploy";
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(deployData),
-      })
-
-      const result = await response.json()
-
-      if (response.ok) {
-        alert("Deployment successful!");
-      } else {
-        console.error("Deployment failed:", result);
-        alert("Deployment failed.");
-      }
-    } catch (error) {
-      console.error("Error during deployment:", error);
-      alert("An error occurred during deployment.");
-    }
+    const res = await deployContract(primaryChain, secondaryChain, functionToCopy, contract)
+    console.log(res)
   }
 
   return (
