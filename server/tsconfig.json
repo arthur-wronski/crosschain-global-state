@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
-    "target": "ES6",
     "module": "commonjs",
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "target": "ES6",
+    "esModuleInterop": true,
     "strict": true,
-    "esModuleInterop": true
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": "./src"
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules"]
 }
