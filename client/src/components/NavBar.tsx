@@ -12,7 +12,7 @@ const navLinksLeft = [
 
 const navLinksRight = [
   { name: "Profile", href: "/profile", icon: <CircleUser size={18} /> },
-  { name: "Logout", href: "/logout", icon: <LogOut size={18} /> },
+  { name: "Logout", href: "/logout", icon: <LogOut size={18} color='#CD3257' /> },
 ];
 
 const orbitron = Orbitron({
