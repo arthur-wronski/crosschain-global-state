@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { ExternalLink, Code2, Globe, Boxes } from "lucide-react"
 import { siGithub } from 'simple-icons';
-import { useEffect, useRef } from "react";
+import DynamicBackground from "./canvas/DynamicBackground"
 
 const features = [
   {
@@ -26,111 +26,10 @@ const features = [
 ]
 
 export default function Home() {
-  useEffect(() => {
-    const canvas = document.getElementById("dynamic-bg");
-    const ctx = canvas.getContext("2d");
-
-    let particlesArray = [];
-    const numberOfParticles = 75;
-    const maxDistance = 150;
-
-    // Set canvas size
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      initParticles();
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    // Create particle class
-    class Particle {
-      constructor(x, y, size, speedX, speedY) {
-        this.x = x;
-        this.y = y;
-        this.size = size;
-        this.speedX = speedX;
-        this.speedY = speedY;
-      }
-
-      // Draw particle as a block
-      draw() {
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(this.x, this.y, this.size, this.size);
-      }
-
-      // Update particle position
-      update() {
-        if (this.x + this.size > canvas.width || this.x < 0) {
-          this.speedX = -this.speedX;
-        }
-        if (this.y + this.size > canvas.height || this.y < 0) {
-          this.speedY = -this.speedY;
-        }
-        this.x += this.speedX;
-        this.y += this.speedY;
-      }
-    }
-
-    // Initialize particles
-    function initParticles() {
-      particlesArray = [];
-      for (let i = 0; i < numberOfParticles; i++) {
-        let size = Math.random() * 5 + 5;
-        let x = Math.random() * (canvas.width - size * 2);
-        let y = Math.random() * (canvas.height - size * 2);
-        let speedX = Math.random() - 1;
-        let speedY = Math.random() - 1;
-        particlesArray.push(new Particle(x, y, size, speedX, speedY));
-      }
-    }
-
-    // Draw connecting lines between nearby particles
-    function connectParticles() {
-      for (let a = 0; a < particlesArray.length; a++) {
-        for (let b = a; b < particlesArray.length; b++) {
-          const dx = particlesArray[a].x - particlesArray[b].x;
-          const dy = particlesArray[a].y - particlesArray[b].y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < maxDistance) {
-            const opacity = 1 - distance / maxDistance;
-            ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(particlesArray[a].x + particlesArray[a].size / 2, particlesArray[a].y + particlesArray[a].size / 2);
-            ctx.lineTo(particlesArray[b].x + particlesArray[b].size / 2, particlesArray[b].y + particlesArray[b].size / 2);
-            ctx.stroke();
-          }
-        }
-      }
-    }
-
-    // Animate the canvas
-    function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particlesArray.forEach(particle => {
-        particle.update();
-        particle.draw();
-      });
-      connectParticles();
-      requestAnimationFrame(animate);
-    }
-
-    initParticles();
-    animate();
-
-    return () => {
-      // Clean up event listener on unmount
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
   return (
     <div className="relative bg-zinc-900 text-zinc-200 min-h-screen">
       {/* Canvas for Dynamic Background */}
-      <canvas id="dynamic-bg" className="absolute inset-0 z-0" />
+      <DynamicBackground/>
 
       {/* Rest of the existing code remains the same */}
       <div className="relative z-10">
