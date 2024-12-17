@@ -6,6 +6,9 @@ import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Rocket } from "lucide-react"
 import { Label } from "@/components/ui/label"
+import parser, {ParseResult} from "@solidity-parser/parser"
+import { PickerOption } from "@/types/types"
+import { FunctionDefinition } from "@solidity-parser/parser/dist/src/ast-types"
 
 export default function Dashboard() {
   const chains= [
@@ -22,6 +25,47 @@ export default function Dashboard() {
   const [secondaryChain, setSecondaryChain] = useState<string | null>(null)
   const [functionToCopy, setFunctionToCopy] = useState<string |null>(null)
 
+  const [contract, setContract] = useState<string>("")
+  const [contractFunctions, setContractFunctions] = useState<PickerOption[]>([])
+
+  const getFunctionsFromAST = (tree: ParseResult): string[] => {
+    if (tree.errors || tree.children.length == 0){
+      return []
+    }
+
+    const contractDefinition = tree.children.find((child) => child.type === "ContractDefinition") 
+
+    if (contractDefinition === undefined || contractDefinition.subNodes.length == 0){
+      return []
+    }
+
+    const functionDefinitions: FunctionDefinition[] = contractDefinition.subNodes.filter(
+      (subNode) => subNode.type === "FunctionDefinition") as FunctionDefinition[];
+
+    if (functionDefinitions.length == 0){
+      return []
+    }
+
+    const functionNames: string[] = functionDefinitions
+      .filter((functionDefinition) => functionDefinition.isConstructor === false)
+      .map( (func) => func.name) as string[]
+
+    return functionNames
+  }
+
+  const handleContractChange = (contract: string) => {
+    setContract(contract)
+
+    const ast = parser.parse(contract)
+    console.log("Abstract syntax tree: ", ast)
+
+    const contractFunctions: string[] = getFunctionsFromAST(ast)
+
+    const functionOptions: PickerOption[] = contractFunctions.map((func) => ({ value: func, label: func }));
+
+    setContractFunctions(functionOptions)
+
+  }
 
   return (
     <div className="flex flex-col items-center relative bg-zinc-900 text-zinc-200 min-h-screen w-full">
@@ -33,6 +77,7 @@ export default function Dashboard() {
           <Textarea 
             className="bg-zinc-800 w-1/2 h-20 mx-auto  border-zinc-600" 
             placeholder="Enter your smart contract code here..."
+            onChange={(event) => handleContractChange(event.target.value)}
           />
         </div>
         {/* TODO: change Pickers to comboboxes as CCIP supports 10 + networks, make secondary a multi select, add icons*/}
@@ -62,9 +107,9 @@ export default function Dashboard() {
               Function to copy
           </Label>
           <Picker 
-            options={chains.filter((chain) => chain.value != primaryChain)} 
+            options={contractFunctions} 
             placeholder="Select function to copy" 
-            onSelect={(value) => setSecondaryChain(value)} 
+            onSelect={(value) => setFunctionToCopy(value)} 
           />
         </div>
 
