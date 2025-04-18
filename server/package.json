@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@chainlink/contracts-ccip": "^1.5.0",
     "express": "^4.21.2"
   },
   "devDependencies": {
@@ -19,7 +20,10 @@
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.2",
     "cors": "^2.8.5",
+    "fs": "^0.0.1-security",
     "nodemon": "^3.1.9",
+    "path": "^0.12.7",
+    "solc": "^0.8.29",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
   }
