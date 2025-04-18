@@ -18,10 +18,10 @@ export default function Dashboard() {
   const [step, setStep] = useState<1 | 2>(1)
   const chains= [
     { value: "polygon", label: "Polygon" },
-    { value: "arb", label: "Arbitrum" },
-    { value: "avax", label: "Avalanche" },
-    { value: "op", label: "Optimism" },
-    { value: "eth", label: "Ethereum" },
+    { value: "arbitrum", label: "Arbitrum" },
+    { value: "avalanche", label: "Avalanche" },
+    { value: "optimism", label: "Optimism" },
+    { value: "ethereum", label: "Ethereum" },
     { value: "base", label: "Base" },
   ]
 
