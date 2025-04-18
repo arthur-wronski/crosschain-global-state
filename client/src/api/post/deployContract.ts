@@ -6,7 +6,7 @@ export const deployContract = async (primaryChain: string, secondaryChain: strin
     const params = {primaryChain, secondaryChain, functionToCopy, contract}
 
     const result = await handleApiRequest({
-      url: "/api/deploy",
+      url: "http://localhost:3001/api/deploy",
       tag: `deployContract`,
       method: "POST",
       body: params,
