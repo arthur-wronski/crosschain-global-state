@@ -1,7 +1,10 @@
+require('dotenv').config()
+
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { injectCCIPReceiver } from './helpers/injectCCIPReceiver';
 import { compileContract } from './helpers/compileContract';
+import { deployParentContract } from './helpers/deployContract';
 
 const app = express();
 const port = 3001;
@@ -13,11 +16,11 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello, Express + TypeScript!');
 });
 
-app.post('/api/deploy', (req: Request, res: Response) => {
+app.post('/api/deploy', async (req: Request, res: Response): Promise<any> => {
   const { primaryChain, secondaryChain, functionToCopy, contract } = req.body;
 
   if (!primaryChain || !secondaryChain || !functionToCopy || !contract) {
-    res.status(400).json({ message: 'Missing required fields' });
+    return res.status(400).json({ message: 'Missing required fields' });
   }
 
   console.log('Deployment request received:', {
@@ -38,12 +41,28 @@ app.post('/api/deploy', (req: Request, res: Response) => {
 
   if (!compileResult.success) {
     console.log("Compile result: ", compileResult)
-    res.status(400).json({ message: 'Compilation failed' });
+    return res.status(400).json({ message: 'Compilation failed' });
   }
 
   console.log("---------- PARENT CONTRACT SUCCESSFULLY COMPILED ----------")
 
-  res.status(200).json({ message: 'Deployment successful' });
+  // now need to deploy parent conctract to primary test network and get contract address
+
+  const maxPlayers = 3;
+  const deployResult = await deployParentContract(
+    primaryChain,
+    compileResult.abi,
+    compileResult.bytecode,
+    maxPlayers
+  );
+
+  if (!deployResult.success) {
+    return res.status(500).json({ message: 'Deployment failed', error: deployResult.error });
+  }
+
+  console.log(`🎉 Contract deployed at: ${deployResult.contractAddress}`);
+
+  return res.status(200).json({ message: 'Deployment successful' });
 });
 
 app.listen(port, () => {
