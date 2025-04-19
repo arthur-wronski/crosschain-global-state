@@ -62,19 +62,20 @@ export default function Dashboard() {
 
     try {
       const ast = parser.parse(contract)
-      console.log("Parsing successful.")
+      // console.log("Parsing successful.")
+      // console.log(ast)
       setParsingSuccess(true)
       setParsingState("Parsing successful.")
-      const contractFunctions: string[] = getFunctionsFromAST(ast)
-
-      const functionOptions: PickerOption[] = contractFunctions.map((func) => ({ value: func, label: func }));
-      setContractFunctions(functionOptions)
+      const contractFunctions: PickerOption[] = getFunctionsFromAST(ast)
+      setContractFunctions(contractFunctions)
     } catch (e) {
       setParsingSuccess(false)
       console.log(e)
       if (e instanceof parser.ParserError) {
         console.log(e.errors)
         setParsingState("Error parsing: " + e.errors[0].message)
+      }else{
+        setParsingState("Parsing unsuccessful.")
       }
     }
 
