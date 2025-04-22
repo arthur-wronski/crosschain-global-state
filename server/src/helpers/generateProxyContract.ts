@@ -12,10 +12,8 @@ contract CCIPProxy {
   LinkTokenInterface public linkToken;
   address public immutable targetAddress;
   uint64 public immutable destinationChainSelector;
-  address public owner;
 
   error NotEnoughBalance(uint256 currentBalance, uint256 calculatedFees);
-  error NotOwner();
 
   event Forwarded(bytes32 messageId);
 
@@ -29,12 +27,6 @@ contract CCIPProxy {
     linkToken = LinkTokenInterface(_linkToken);
     targetAddress = _targetAddress;
     destinationChainSelector = _destinationChainSelector;
-    owner = msg.sender;
-  }
-
-  modifier onlyOwner() {
-    if (msg.sender != owner) revert NotOwner();
-    _;
   }
 
   function forward(bytes memory encodedArgs) external {
