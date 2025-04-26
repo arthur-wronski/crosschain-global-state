@@ -1,60 +1,104 @@
 import { ethers } from 'ethers';
+import { FULL_CHAIN_CONFIG } from './chainConfig';
+
+const PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY;
 
 type DeploymentResult =
   | { success: true; contractAddress: string }
   | { success: false; error: string };
 
-const ROUTER_ADDRESS_MAP: Record<string, string> = {
-  ethereum: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
-  arbitrum: '0x2a9C5afB0d0e4BAb2BCdaE109EC4b0c4Be15a165',
-  avalanche: '0xF694E193200268f9a4868e4Aa017A0118C9a8177',
-  base: '0xD3b06cEbF099CE7DA4AcCf578aaebFDBd6e88a93',
-  optimism: '0x114A20A10b43D4115e5aeef7345a1A71d2a60C57',
-  polygon: '0x9C32fCB86BF0f4a1A8921a9Fe46de3198bb884B2'
-};
-
-const INFURA_KEY = process.env.INFURA_PROJECT_ID;
-
-const RPC_URLS: Record<string, string> = {
-    ethereum: `https://sepolia.infura.io/v3/${INFURA_KEY}`,
-    polygon: `https://polygon-amoy.infura.io/v3/${INFURA_KEY}`,
-    arbitrum: `https://arbitrum-sepolia.infura.io/v3/${INFURA_KEY}`,
-    avalanche: `https://avalanche-fuji.infura.io/v3/${INFURA_KEY}`,
-    base: `https://base-sepolia.infura.io/v3/${INFURA_KEY}`,
-    optimism: `https://optimism-sepolia.infura.io/v3/${INFURA_KEY}`,
-};
-
-const PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY;
-
 export async function deployParentContract(
   chainKey: string,
   abi: any,
-  bytecode: string,
-  maxPlayers: number
+  bytecode: string
 ): Promise<DeploymentResult> {
-    if (!PRIVATE_KEY) {
-      return { success: false, error: 'Deployer private key not set' };
-    }
+  if (!PRIVATE_KEY) {
+    return { success: false, error: 'Deployer private key not set' };
+  }
 
-    const router = ROUTER_ADDRESS_MAP[chainKey];
-    const rpcUrl = RPC_URLS[chainKey];
+  const config = FULL_CHAIN_CONFIG[chainKey];
 
-    if (!router || !rpcUrl) {
-      return { success: false, error: `Unsupported chain: ${chainKey}` };
-    }
+  if (!config) {
+    return { success: false, error: `Unsupported chain: ${chainKey}` };
+  }
 
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
-    const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+  const provider = new ethers.providers.JsonRpcProvider(config.rpcUrl);
+  const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
 
-    const factory = new ethers.ContractFactory(abi, bytecode, wallet);
+  const factory = new ethers.ContractFactory(abi, bytecode, wallet);
 
-    const contract = await factory.deploy(maxPlayers, router);
-    await contract.deployed();
-    const contractAddress = contract.address;
-    console.log("Contract address: ", contractAddress)
+  const contract = await factory.deploy(config.routerAddress); // ONLY router address needed
+  await contract.deployed();
+  console.log("✅ Parent Contract deployed at:", contract.address);
 
-    return {
-      success: true,
-      contractAddress: contractAddress,
-    };
+  return { success: true, contractAddress: contract.address };
+}
+
+export async function deployProxyContract(
+  chainKey: string,
+  abi: any,
+  bytecode: string,
+  linkTokenAddress: string,
+  parentAddress: string,
+  destinationChainSelector: bigint
+): Promise<DeploymentResult> {
+  if (!PRIVATE_KEY) {
+    return { success: false, error: 'Deployer private key not set' };
+  }
+
+  const config = FULL_CHAIN_CONFIG[chainKey];
+
+  if (!config) {
+    return { success: false, error: `Unsupported chain: ${chainKey}` };
+  }
+
+  const provider = new ethers.providers.JsonRpcProvider(config.rpcUrl);
+  const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+
+  const factory = new ethers.ContractFactory(abi, bytecode, wallet);
+
+  const contract = await factory.deploy(
+    config.routerAddress,
+    linkTokenAddress,
+    parentAddress,
+    destinationChainSelector.toString()
+  );
+
+  await contract.deployed();
+  console.log(`✅ Proxy Contract deployed at:`, contract.address);
+
+  return { success: true, contractAddress: contract.address };
+}
+
+
+export async function sendLink(
+  chainKey: string,
+  linkTokenAddress: string,
+  recipient: string,
+  amount = ethers.utils.parseUnits('1', 18)
+) {
+  if (!PRIVATE_KEY) {
+    throw new Error('Deployer private key not set');
+  }
+
+  const config = FULL_CHAIN_CONFIG[chainKey];
+
+  if (!config) {
+    throw new Error(`Unsupported chain for LINK transfer: ${chainKey}`);
+  }
+
+  const provider = new ethers.providers.JsonRpcProvider(config.rpcUrl);
+  const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+
+  const linkAbi = [
+    'function transfer(address to, uint256 value) public returns (bool)'
+  ];
+
+  const linkTokenContract = new ethers.Contract(linkTokenAddress, linkAbi, wallet);
+
+  const tx = await linkTokenContract.transfer(recipient, amount);
+  console.log(`🚀 Sending ${ethers.utils.formatUnits(amount, 18)} LINK to ${recipient} on ${chainKey}...`);
+
+  await tx.wait();
+  console.log(`✅ LINK sent successfully! Transaction Hash: ${tx.hash}`);
 }
