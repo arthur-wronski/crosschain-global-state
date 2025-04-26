@@ -4,7 +4,9 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { injectCCIPReceiver } from './helpers/injectCCIPReceiver';
 import { compileContract } from './helpers/compileContract';
-import { deployParentContract } from './helpers/deployContract';
+import { generateProxyContract } from './helpers/generateProxyContract';
+import { deployGlobalState } from './deployGlobalState';
+import { FULL_CHAIN_CONFIG } from './helpers/chainConfig';
 
 const app = express();
 const port = 3001;
@@ -12,58 +14,79 @@ const port = 3001;
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello, Express + TypeScript!');
-});
-
 app.post('/api/deploy', async (req: Request, res: Response): Promise<any> => {
-  const { primaryChain, secondaryChain, functionToCopy, contract } = req.body;
+  const { primaryChain, secondaryChains, functionToCopy, contract } = req.body;
 
-  if (!primaryChain || !secondaryChain || !functionToCopy || !contract) {
+  if (!primaryChain || !secondaryChains || !functionToCopy || !contract) {
     return res.status(400).json({ message: 'Missing required fields' });
   }
 
   console.log('Deployment request received:', {
     primaryChain,
-    secondaryChain,
+    secondaryChains,
     functionToCopy,
     contract,
   });
 
-  // inject CCIP code into parent contract -> imports + Contract is CCIPReceiver + constructor change + ccipReceive
-  // deploy to primary chain and store contract address
-  // construct proxy contract
-  // deploy on all the secondary chains, load up some LINK on each, call joinLottery to see if it propagates to parent contract
+  try {
+    const parentConfig = FULL_CHAIN_CONFIG[primaryChain];
+    const secondaryConfigs = secondaryChains.map((chain: string) => FULL_CHAIN_CONFIG[chain]);
 
-  const injectedContract = injectCCIPReceiver(contract);
-  console.log("Injected parent contract: ", injectedContract)
-  const compileResult = compileContract(injectedContract);
+    if (!parentConfig || secondaryConfigs.some((c: string) => !c)) {
+      return res.status(400).json({ message: 'Unsupported chain(s) specified' });
+    }
 
-  if (!compileResult.success) {
-    console.log("Compile result: ", compileResult)
-    return res.status(400).json({ message: 'Compilation failed' });
+    const injectedContract = injectCCIPReceiver(contract);
+    console.log("Injected parent contract:", injectedContract);
+
+    const parentCompileResult = compileContract(injectedContract);
+    if (!parentCompileResult.success) {
+      console.log("Parent compile result:", parentCompileResult.errors);
+      return res.status(400).json({ message: 'Parent contract compilation failed', errors: parentCompileResult.errors });
+    }
+
+    console.log("✅ Parent contract compiled successfully");
+
+    const proxyContractCode = generateProxyContract(functionToCopy);
+    console.log("Generated Proxy Contract:\n", proxyContractCode);
+
+    const proxyCompileResult = compileContract(proxyContractCode);
+    if (!proxyCompileResult.success) {
+      console.log("Proxy compile result:", proxyCompileResult.errors);
+      return res.status(400).json({ message: 'Proxy contract compilation failed', errors: proxyCompileResult.errors });
+    }
+    
+    console.log("✅ Proxy contract compiled successfully");
+
+    const deploymentResult = await deployGlobalState({
+      parentChain: {
+        name: primaryChain,
+        chainSelector: BigInt(parentConfig.chainSelector),
+        linkTokenAddress: parentConfig.linkTokenAddress,
+      },
+      proxyChains: secondaryChains.map((chainName: string) => ({
+        name: chainName,
+        chainSelector: BigInt(FULL_CHAIN_CONFIG[chainName].chainSelector),
+        linkTokenAddress: FULL_CHAIN_CONFIG[chainName].linkTokenAddress,
+      })),
+      parentCompiled: {
+        abi: parentCompileResult.abi,
+        bytecode: parentCompileResult.bytecode,
+      },
+      proxyCompiled: {
+        abi: proxyCompileResult.abi,
+        bytecode: proxyCompileResult.bytecode,
+      }
+    });
+
+    return res.status(200).json(deploymentResult);
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: 'Deployment failed', error });
   }
-
-  console.log("---------- PARENT CONTRACT SUCCESSFULLY COMPILED ----------")
-
-  // now need to deploy parent conctract to primary test network and get contract address
-
-  const maxPlayers = 3;
-  const deployResult = await deployParentContract(
-    primaryChain,
-    compileResult.abi,
-    compileResult.bytecode,
-    maxPlayers
-  );
-
-  if (!deployResult.success) {
-    return res.status(500).json({ message: 'Deployment failed', error: deployResult.error });
-  }
-
-  console.log(`🎉 Contract deployed at: ${deployResult.contractAddress}`);
-
-  return res.status(200).json({ message: 'Deployment successful' });
 });
+
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
