@@ -1,4 +1,12 @@
 export function generateProxyContract(functionSignature: string): string {
+  const hasArguments = functionSignature.includes('(') && !functionSignature.includes('()');
+
+  const payloadEncoding = hasArguments
+    ? `abi.encodeWithSignature("${functionSignature}", encodedArgs)`
+    : `abi.encodeWithSignature("${functionSignature}")`;
+
+  const functionParameters = hasArguments ? `(bytes memory encodedArgs)` : `()`;
+
   return `
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
@@ -29,8 +37,8 @@ contract CCIPProxy {
     destinationChainSelector = _destinationChainSelector;
   }
 
-  function forward(bytes memory encodedArgs) external {
-    bytes memory payload = abi.encodeWithSignature("${functionSignature}", encodedArgs);
+  function forward${functionParameters} external {
+    bytes memory payload = ${payloadEncoding};
 
     Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
       receiver: abi.encode(targetAddress),
