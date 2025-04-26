@@ -1,4 +1,4 @@
-export function generateProxyContractCode(functionSignature: string): string {
+export function generateProxyContract(functionSignature: string): string {
   return `
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
