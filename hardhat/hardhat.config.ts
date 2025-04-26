@@ -19,6 +19,10 @@ const config: HardhatUserConfig = {
       url: `https://arbitrum-sepolia.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
       accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
     },
+    avalanche: {
+      url: `https://avalanche-fuji.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
+    },
   },
 };
 
