@@ -3,7 +3,7 @@ import { handleApiRequest } from "@/api/apiHandler"
 export const deployContract = async (primaryChain: string, secondaryChain: string, functionToCopy: string, contract: string) => {
   try {
 
-    const params = {primaryChain, secondaryChain, functionToCopy, contract}
+    const params = {primaryChain, secondaryChains: [secondaryChain], functionToCopy, contract}
 
     const result = await handleApiRequest({
       url: "http://localhost:3001/api/deploy",
