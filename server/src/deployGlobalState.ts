@@ -42,7 +42,7 @@ export async function deployGlobalState(deploymentRequest: DeploymentRequest) {
       proxyCompiled.bytecode,
       proxyChain.linkTokenAddress,
       parentDeployment.contractAddress,
-      proxyChain.chainSelector
+      parentChain.chainSelector
     );
 
     if (!proxyDeployment.success) {
