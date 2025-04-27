@@ -11,7 +11,7 @@ const Picker: React.FC<PickerProps> = ({options, placeholder, onSelect}) => {
     return (
         <div className="mb-4">
             <Select onValueChange={onSelect}>
-            <SelectTrigger className="bg-zinc-900 border-none w-[240px] mx-auto">
+            <SelectTrigger className="bg-zinc-900 hover:bg-zinc-950 border-none w-[240px] mx-auto">
                 <SelectValue className="font-bold" placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent className="bg-zinc-900 border-none text-zinc-200">
