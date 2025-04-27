@@ -1,22 +1,6 @@
-import { PickerOption } from '@/types/types'
+import { DeploymentState } from '@/app/interfaces/interfaces'
+import { DeploymentSummary, PickerOption } from '@/types/types'
 import { create } from 'zustand'
-
-interface DeploymentState {
-    primaryChain: string | null,
-    setPrimaryChain: (primaryChain: string) => void,
-
-    secondaryChain: string | null,
-    setSecondaryChain: (secondaryChain: string) => void,
-
-    functionToCopy: string | null,
-    setFunctionToCopy: (functionToCopy: string) => void,
-
-    contract: string,
-    setContract: (contract: string) => void,
-
-    contractFunctions: PickerOption[],
-    setContractFunctions: (contractFunctions: PickerOption[]) => void
-}
 
 const useDeploymentStore = create<DeploymentState>((set) => ({
   primaryChain: null,
@@ -32,7 +16,14 @@ const useDeploymentStore = create<DeploymentState>((set) => ({
   setContract: (contract: string) => set({contract}),
 
   contractFunctions: [],
-  setContractFunctions: (contractFunctions: PickerOption[]) => set({contractFunctions})
+  setContractFunctions: (contractFunctions: PickerOption[]) => set({contractFunctions}),
+
+  isDeploymentSummaryOpen: false,
+  setDeploymentSummaryOpen: (open: boolean) => (set({isDeploymentSummaryOpen: open})),
+
+  deploymentSummary: null,
+  setDeploymentSummary: (summary: DeploymentSummary) => (set({deploymentSummary: summary})),
+
 }))
 
 export default useDeploymentStore
