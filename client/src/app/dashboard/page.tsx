@@ -13,6 +13,7 @@ import { getFunctionsFromAST } from "@/utils/deploymentUtils"
 import { deployContract } from "@/api/post/deployContract"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import DeploymentSummary from "@/components/modals/DeploymentSummary"
 
 export default function Dashboard() {
   const [step, setStep] = useState<1 | 2>(1)
@@ -40,6 +41,9 @@ export default function Dashboard() {
 
   const contractFunctions = useDeploymentStore((state) => state.contractFunctions)
   const setContractFunctions = useDeploymentStore((state) => state.setContractFunctions)
+
+  const setDeploymentSummary = useDeploymentStore((state) => state.setDeploymentSummary)
+  const setDeploymentSummaryOpen = useDeploymentStore((state) => state.setDeploymentSummaryOpen)
 
   const [parsingSuccess, setParsingSuccess] = useState<boolean>(false)
   const [parsingState, setParsingState] = useState<string>("")
@@ -93,7 +97,9 @@ export default function Dashboard() {
 
     const res = await deployContract(primaryChain, secondaryChain, functionToCopy, contract)
     console.log(res)
+    setDeploymentSummary(res)
     setDeploymentLoading(false)
+    setDeploymentSummaryOpen(true)
   }
 
   return (
@@ -203,6 +209,7 @@ export default function Dashboard() {
         }
         
       </div>
+      <DeploymentSummary/>
     </div>
   )
 }
