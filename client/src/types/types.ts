@@ -8,3 +8,14 @@ export interface PickerProps {
     placeholder: string;
     onSelect: (value: string) => void;
 }
+
+type Deployment = {
+    chain: string,
+    address: string,
+  }
+  
+export type DeploymentSummary = {
+    success: boolean, 
+    parent: Deployment
+    proxies: Deployment[]
+  }
