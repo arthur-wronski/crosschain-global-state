@@ -14,6 +14,7 @@ import { deployContract } from "@/api/post/deployContract"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import DeploymentSummary from "@/components/modals/DeploymentSummary"
+import { MultiSelect } from "@/components/MultiSelect"
 
 export default function Dashboard() {
   const [step, setStep] = useState<1 | 2>(1)
@@ -30,8 +31,8 @@ export default function Dashboard() {
   const setPrimaryChain = useDeploymentStore((state) => state.setPrimaryChain)
 
   // this will later be an array of chains
-  const secondaryChain = useDeploymentStore((state) => state.secondaryChain)
-  const setSecondaryChain = useDeploymentStore((state) => state.setSecondaryChain)
+  const secondaryChains = useDeploymentStore((state) => state.secondaryChains)
+  const setSecondaryChains = useDeploymentStore((state) => state.setSecondaryChains)
 
   const functionToCopy = useDeploymentStore((state) => state.functionToCopy)
   const setFunctionToCopy = useDeploymentStore((state) => state.setFunctionToCopy)
@@ -88,14 +89,14 @@ export default function Dashboard() {
   const handleDeploy = async () => {
     setDeploymentLoading(true)
 
-    if (!primaryChain || !secondaryChain || !functionToCopy || !contract) {
+    if (!primaryChain || !secondaryChains || !functionToCopy || !contract) {
       alert("Please fill in all fields before deploying.");
       return;
     }
 
     await new Promise(resolve => setTimeout(resolve, 200));
 
-    const res = await deployContract(primaryChain, secondaryChain, functionToCopy, contract)
+    const res = await deployContract(primaryChain, secondaryChains, functionToCopy, contract)
     console.log(res)
     setDeploymentSummary(res)
     setDeploymentLoading(false)
@@ -142,10 +143,9 @@ export default function Dashboard() {
                       <Label className="mx-auto block text-left text-xs mb-2 text-zinc-400">
                           Secondary chains
                       </Label>
-                      <Picker 
+                      <MultiSelect
                         options={chains.filter((chain) => chain.value != primaryChain)} 
-                        placeholder="Select secondary chains" 
-                        onSelect={(value) => setSecondaryChain(value)} 
+                        onValueChange={(chains) => setSecondaryChains(chains)}
                       />
                     </div>
 
@@ -167,7 +167,7 @@ export default function Dashboard() {
                   <Button 
                     className="flex w-32 h-10 bg-teal-700 hover:bg-teal-600 mx-auto border-zinc-600 mt-4"
                     onClick={handleDeploy} 
-                    disabled={!primaryChain || !secondaryChain || !functionToCopy}
+                    disabled={!primaryChain || !secondaryChains || !functionToCopy}
                   > 
                     {!deploymentLoading ? 
                       <>
