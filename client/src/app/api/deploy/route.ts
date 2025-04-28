@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-    const { primaryChain, secondaryChain, functionToCopy, contract } = await request.json();
+    const { primaryChain, secondaryChain, functionsToCopy, contract } = await request.json();
 
-    if (!primaryChain || !secondaryChain || !functionToCopy || !contract) {
+    if (!primaryChain || !secondaryChain || !functionsToCopy || !contract) {
         return NextResponse.json(
             { message: 'Missing required fields' }, 
             { status: 400 }
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     console.log('Deployment request received:', {
     primaryChain,
     secondaryChain,
-    functionToCopy,
+    functionsToCopy,
     contract,
     });
 

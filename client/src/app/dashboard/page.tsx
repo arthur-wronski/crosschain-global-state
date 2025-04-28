@@ -34,8 +34,8 @@ export default function Dashboard() {
   const secondaryChains = useDeploymentStore((state) => state.secondaryChains)
   const setSecondaryChains = useDeploymentStore((state) => state.setSecondaryChains)
 
-  const functionToCopy = useDeploymentStore((state) => state.functionToCopy)
-  const setFunctionToCopy = useDeploymentStore((state) => state.setFunctionToCopy)
+  const functionsToCopy = useDeploymentStore((state) => state.functionsToCopy)
+  const setFunctionsToCopy = useDeploymentStore((state) => state.setFunctionsToCopy)
 
   const contract = useDeploymentStore((state) => state.contract)
   const setContract = useDeploymentStore((state) => state.setContract)
@@ -89,14 +89,14 @@ export default function Dashboard() {
   const handleDeploy = async () => {
     setDeploymentLoading(true)
 
-    if (!primaryChain || !secondaryChains || !functionToCopy || !contract) {
+    if (!primaryChain || !secondaryChains || !functionsToCopy || !contract) {
       alert("Please fill in all fields before deploying.");
       return;
     }
 
     await new Promise(resolve => setTimeout(resolve, 200));
 
-    const res = await deployContract(primaryChain, secondaryChains, functionToCopy, contract)
+    const res = await deployContract(primaryChain, secondaryChains, functionsToCopy, contract)
     console.log(res)
     setDeploymentSummary(res)
     setDeploymentLoading(false)
@@ -153,10 +153,10 @@ export default function Dashboard() {
                       <Label className="mx-auto block text-left text-xs mb-2 text-zinc-400">
                           Function to copy
                       </Label>
-                      <Picker 
+                      <MultiSelect 
                         options={contractFunctions} 
-                        placeholder="Select function to copy" 
-                        onSelect={(value) => setFunctionToCopy(value)} 
+                        placeholder="Select functions to copy" 
+                        onValueChange={(functions) => setFunctionsToCopy(functions)} 
                       />
                     </div>
 
@@ -167,7 +167,7 @@ export default function Dashboard() {
                   <Button 
                     className="flex w-32 h-10 bg-teal-700 hover:bg-teal-600 mx-auto border-zinc-600 mt-4"
                     onClick={handleDeploy} 
-                    disabled={!primaryChain || !secondaryChains || !functionToCopy}
+                    disabled={!primaryChain || !secondaryChains || !functionsToCopy}
                   > 
                     {!deploymentLoading ? 
                       <>

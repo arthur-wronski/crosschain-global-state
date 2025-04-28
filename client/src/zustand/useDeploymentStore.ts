@@ -9,8 +9,8 @@ const useDeploymentStore = create<DeploymentState>((set) => ({
   secondaryChains: [],
   setSecondaryChains: (secondaryChains: string[]) => set({secondaryChains}),
 
-  functionToCopy: null,
-  setFunctionToCopy: (functionToCopy: string) => set({functionToCopy}),
+  functionsToCopy: [],
+  setFunctionsToCopy: (functionsToCopy: string[]) => set({functionsToCopy}),
 
   contract: "",
   setContract: (contract: string) => set({contract}),

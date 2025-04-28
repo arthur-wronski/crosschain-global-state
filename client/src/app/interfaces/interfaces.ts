@@ -4,11 +4,11 @@ export interface DeploymentState {
     primaryChain: string | null,
     setPrimaryChain: (primaryChain: string) => void,
 
-    secondaryChains: string[] | null,
+    secondaryChains: string[],
     setSecondaryChains: (secondaryChains: string[]) => void,
 
-    functionToCopy: string | null,
-    setFunctionToCopy: (functionToCopy: string) => void,
+    functionsToCopy: string[],
+    setFunctionsToCopy: (functionsToCopy: string[]) => void,
 
     contract: string,
     setContract: (contract: string) => void,
