@@ -28,12 +28,9 @@ const features = [
 export default function Home() {
   return (
     <div className="relative bg-zinc-900 text-zinc-200 min-h-screen">
-      {/* Canvas for Dynamic Background */}
       <DynamicBackground/>
 
-      {/* Rest of the existing code remains the same */}
       <div className="relative z-10">
-        {/* Hero Section */}
         <div className="container mx-auto px-4 p-8 text-center">
           <p className="text-2xl mb-8 max-w-2xl mx-auto">
             A Global State Framework for Cross-Chain Smart Contracts
@@ -44,7 +41,7 @@ export default function Home() {
                 Get Started
               </Button>
             </Link>
-            <Button className="bg-zinc-100 text-zinc-800 hover:bg-zinc-300" onClick={() => window.location.assign('https://github.com/arthur-wronski/orbitum')} variant="outline">
+            <Button className="bg-zinc-100 text-zinc-800 hover:bg-zinc-300" onClick={() => window.location.assign('https://github.com/arthur-wronski/crosschain-global-state')} variant="outline">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
