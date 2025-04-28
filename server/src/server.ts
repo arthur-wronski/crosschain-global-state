@@ -15,16 +15,16 @@ app.use(cors());
 app.use(express.json());
 
 app.post('/api/deploy', async (req: Request, res: Response): Promise<any> => {
-  const { primaryChain, secondaryChains, functionToCopy, contract } = req.body;
+  const { primaryChain, secondaryChains, functionsToCopy, contract } = req.body;
 
-  if (!primaryChain || !secondaryChains || !functionToCopy || !contract) {
+  if (!primaryChain || !secondaryChains || !functionsToCopy || !contract) {
     return res.status(400).json({ message: 'Missing required fields' });
   }
 
   console.log('Deployment request received:', {
     primaryChain,
     secondaryChains,
-    functionToCopy,
+    functionsToCopy,
     contract,
   });
 
@@ -36,7 +36,7 @@ app.post('/api/deploy', async (req: Request, res: Response): Promise<any> => {
       return res.status(400).json({ message: 'Unsupported chain(s) specified' });
     }
 
-    const injectedContract = injectCCIPReceiver(contract);
+    const injectedContract = injectCCIPReceiver(contract, functionsToCopy);
     console.log("Injected parent contract:", injectedContract);
 
     const parentCompileResult = compileContract(injectedContract);
@@ -47,7 +47,7 @@ app.post('/api/deploy', async (req: Request, res: Response): Promise<any> => {
 
     console.log("✅ Parent contract compiled successfully");
 
-    const proxyContractCode = generateProxyContract(functionToCopy);
+    const proxyContractCode = generateProxyContract(functionsToCopy);
     console.log("Generated Proxy Contract:\n", proxyContractCode);
 
     const proxyCompileResult = compileContract(proxyContractCode);
