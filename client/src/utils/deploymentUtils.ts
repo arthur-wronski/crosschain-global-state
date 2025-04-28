@@ -40,7 +40,11 @@ export const getFunctionsFromAST = (tree: ParseResult): PickerOption[] => {
     .map((fn) => {
       const name = fn.name!;
       const paramList = fn.parameters
-        .map((param) => param.typeName ? extractType(param.typeName) : "unknown")
+        .map((param) => {
+          const type = param.typeName ? extractType(param.typeName) : "unknown";
+          const paramName = param.name ? param.name : "param"; // fallback if missing
+          return `${type} ${paramName}`;
+        })
         .join(", ");
       const fullSignature = `${name}(${paramList})`;
 
