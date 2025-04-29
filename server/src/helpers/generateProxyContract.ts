@@ -5,19 +5,36 @@ export function generateProxyContract(functionSignatures: string[]): string {
 
     let functionParams = '()';
     let abiArgs = '';
+
     if (argsSection && argsSection.length > 0) {
       const argsList = argsSection.split(',').map(arg => arg.trim());
-      // argsList contains ["uint256 amount", ...] for multi-param functions
-      functionParams = '(' + argsList.join(', ') + ')';
+
+      // inject memory keyword if needed
+      const functionArgs = argsList.map(arg => {
+        const [type, name] = arg.split(/\s+/); // Split type and param name
+        const baseType = type.replace(/\[.*\]/, ''); // Remove array brackets if any
+
+        // These types must specify memory
+        const isDynamicType = ['string', 'bytes'].includes(baseType) || type.includes('[');
+        if (isDynamicType) {
+          return `${type} memory ${name}`;
+        } else {
+          return `${type} ${name}`;
+        }
+      });
+
+      functionParams = '(' + functionArgs.join(', ') + ')';
+
       const abiArgNames = argsList.map(arg => {
         const parts = arg.trim().split(' ');
-        return parts[parts.length - 1]; // grab the parameter name
+        return parts[parts.length - 1]; // grab parameter name
       });
       abiArgs = abiArgNames.join(', ');
     }
 
-    const abiSignature = functionName + '(' + 
-      (argsSection ? argsSection.split(',').map(arg => arg.trim().split(' ')[0]).join(',') : '') + 
+    // abiSignature = functionName(type1,type2,...)
+    const abiSignature = functionName + '(' +
+      (argsSection ? argsSection.split(',').map(arg => arg.trim().split(' ')[0]).join(',') : '') +
       ')';
 
     const payload = abiArgs
