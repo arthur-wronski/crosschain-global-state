@@ -30,6 +30,12 @@ export const FULL_CHAIN_CONFIG: Record<string, {
       routerAddress: '0xD3b06cEbF099CE7DA4AcCf578aaebFDBd6e88a93',
       rpcUrl: `https://base-sepolia.infura.io/v3/${INFURA_KEY}`,
     },
+    binance: {
+      chainSelector: '13264668187771770619',
+      linkTokenAddress: '0x84b9B910527Ad5C03A9Ca831909E21e236EA7b06',
+      routerAddress: '0xE1053aE1857476f36A3C62580FF9b016E8EE8F6f',
+      rpcUrl: `https://bsc-testnet.infura.io/v3/${INFURA_KEY}`,
+    },
     optimism: {
       chainSelector: '5224473277236331295',
       linkTokenAddress: '0xE4aB69C077896252FAFBD49EFD26B5D171A32410', 

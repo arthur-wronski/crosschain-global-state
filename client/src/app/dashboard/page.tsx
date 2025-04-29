@@ -25,6 +25,8 @@ export default function Dashboard() {
     { value: "optimism", label: "Optimism" },
     { value: "ethereum", label: "Ethereum" },
     { value: "base", label: "Base" },
+    { value: "binance", label: "Binance" },
+
   ]
 
   const primaryChain = useDeploymentStore((state) => state.primaryChain)
