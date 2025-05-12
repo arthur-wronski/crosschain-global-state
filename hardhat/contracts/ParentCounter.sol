@@ -6,7 +6,7 @@ import {CCIPReceiver} from "@chainlink/contracts-ccip/src/v0.8/ccip/applications
 contract ParentCounter is CCIPReceiver {
     
     constructor(address _router) CCIPReceiver(_router) {}
-uint256 public count;
+    uint256 public count;
 
     event CountIncremented(uint256 newCount);
 
