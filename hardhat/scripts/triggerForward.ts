@@ -1,10 +1,11 @@
 import { ethers } from "hardhat";
 
-const PROXY_ADDRESS = "0x35FC45F203e031DdafB02766DEdFCC9063afdE56";
+const PROXY_ADDRESS = "0x4d0A0B319C1D375B13E988FD814083DEB31A23ee";
 
 async function main() {
   const [signer] = await ethers.getSigners();
-  const proxy = await ethers.getContractAt("ProxyCounter", PROXY_ADDRESS, signer);
+  const proxy = await ethers.getContractAt("CCIPProxy", PROXY_ADDRESS, signer);
+  
 
   const tx = await proxy.forward();
   const receipt = await tx.wait();

@@ -1,16 +1,17 @@
 import { ethers } from "hardhat";
 
-const PROXY_ADDRESS = "0xff4a01b9CDDD9097474cd2F6c73176EE66A5B4e2";
+const PROXY_ADDRESS = "0xFC45994753607B1dE7499669f38cFfcD423e8a6b";
 
 async function main() {
   const [signer] = await ethers.getSigners();
-  const proxy = await ethers.getContractAt("CCIPProxy", PROXY_ADDRESS, signer);
-  
+  const proxy = await ethers.getContractAt("Governance", PROXY_ADDRESS, signer);
 
-  const tx = await proxy.forward();
+  const pollId = 0; 
+
+  const tx = await proxy.closePoll(pollId);
   const receipt = await tx.wait();
 
-  console.log("✅ forward() sent");
+  console.log("✅ vote() sent");
   console.log("🧾 Transaction hash:", receipt?.hash);
 }
 
