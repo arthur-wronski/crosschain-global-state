@@ -23,20 +23,27 @@ export function injectCCIPReceiver(contract: string, functionsToCopy: string[]):
     const fullConstructor = constructorMatch[0];
     const updatedConstructor = fullConstructor
       .replace(/constructor\s*\(/, 'constructor(')
-      .replace(/\)\s*{/, ', address _router) CCIPReceiver(_router) {');
+      .replace(/\)\s*{/, ', address _router) CCIPReceiver(_router) {\n        initializeWhitelist();');
     modified = modified.replace(fullConstructor, updatedConstructor);
   } else {
     modified = modified.replace(
-      /contract\s+[^\{]+\{\s*/,
-      (match) => `${match}\n    constructor(address _router) CCIPReceiver(_router) {}`
+      /contract\s+\w+\s+is\s+CCIPReceiver\s*{/,
+      (match) => `${match}
+    constructor(address _router) CCIPReceiver(_router) {
+        initializeWhitelist();
+    }`
     );
   }
 
   // 4. Create whitelist mapping
   const functionSelectors = functionsToCopy.map(signature => {
-    const methodId = ethers.utils.id(signature).slice(0, 10);
-    return `whitelist[bytes4(${methodId})] = true;`;
+    const normalized = normalizeSignature(signature);
+    const selector = ethers.utils
+      .keccak256(ethers.utils.toUtf8Bytes(normalized))
+      .slice(2, 10); // remove '0x' prefix
+    return `whitelist[bytes4(hex"${selector}")] = true;`;
   }).join('\n        ');
+  
 
   const whitelistCode = `
     mapping(bytes4 => bool) public whitelist;
@@ -47,8 +54,8 @@ export function injectCCIPReceiver(contract: string, functionsToCopy: string[]):
   `;
 
   modified = modified.replace(
-    /{\s*(constructor\(.*?\))/,
-    `{${whitelistCode}$1`
+    /contract\s+\w+\s+is\s+CCIPReceiver\s*{/, 
+    (match) => `${match}\n${whitelistCode}`
   );
 
   // 5. func to receive messages and call the ABI encoded function call, now checks if function selector is whitelisted for safety
@@ -63,10 +70,21 @@ export function injectCCIPReceiver(contract: string, functionsToCopy: string[]):
 
       (bool success, ) = address(this).call(_data);
       require(success, "CCIP message execution failed");
-  }
+    }
   `;
 
-  modified = modified.replace(/\n\}\s*$/, `${ccipFunction}}`);
+  modified = modified.replace(/\n\}\s*$/, `\n${ccipFunction}\n}`);
 
   return modified;
+}
+
+function normalizeSignature(sig: string): string {
+  const match = sig.match(/^(\w+)\((.*)\)$/);
+  if (!match) return sig;
+  const name = match[1];
+  const params = match[2]
+    .split(',')
+    .map(param => param.trim().split(' ')[0]) // take only the type, e.g., "string question" → "string"
+    .join(',');
+  return `${name}(${params})`;
 }
